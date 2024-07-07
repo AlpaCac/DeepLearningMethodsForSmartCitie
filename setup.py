@@ -14,7 +14,7 @@ setup(
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     packages=find_packages(),
-    install_requires=['numpy','geopandas','pyrosm','matplotlib'],  # add any additional packages that
+    install_requires=['numpy','geopandas','pyrosm','matplotlib','folium'],  # add any additional packages that
     # 需要和你的包一起安装，例如：'caer'
 
     keywords=['python', 'poi'],

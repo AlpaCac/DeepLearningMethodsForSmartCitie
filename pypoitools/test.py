@@ -1,14 +1,25 @@
-import matplotlib
-from pyrosm import OSM
-from pyrosm import get_data
 import warnings
+import pyrosm
+import folium
+import geopandas as gpd
+import pandas as pd
 
-DATADIR = "F:\\items\\生产实习20240705\\data"
-warnings.simplefilter(action='ignore', category=FutureWarning)
-fp = get_data("beijing", directory=DATADIR)
+# settings
+pd.set_option('display.max_columns', None)    # 显示所有列
+pd.set_option('display.max_rows', None)      # 显示所有行
+warnings.simplefilter(action='ignore', category=FutureWarning) #解决FutureWarning问题
 
-osm = OSM(fp)
-buildings = osm.get_buildings()
-buildings.plot()
+# static
+PBFDIR = "F:\\items\\生产实习20240705\\data\\pbf\\"   #.osm.pbf数据位置
+GEODIR = "F:\\items\\生产实习20240705\\data\\geojson\\"   #.geojson数据位置
+HTMLDIR = "F:\\items\\生产实习20240705\\data\\html\\"   #.html数据位置
 
-matplotlib.pyplot.show()
+# main
+osm = pyrosm.OSM(PBFDIR+"Beijing.osm.pbf")   #创建osm对象
+drive_net = osm.get_network(network_type="driving") #获取drive_net数据
+gdf = gpd.GeoDataFrame(drive_net)   #转化为geo格式
+gdf.to_file(GEODIR+"drive_net.geojson", driver='GeoJSON') #将gdb保存为文件
+
+m = folium.Map(location=[39.9042, 116.4074], zoom_start=13) #创建map对象
+folium.GeoJson(gdf).add_to(m) #将geo数据加入map
+m.save(HTMLDIR+'beijing_drive_net.html') #将map保存为html
