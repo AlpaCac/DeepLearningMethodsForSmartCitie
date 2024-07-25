@@ -1,6 +1,7 @@
 import warnings
 import folium
 import pyrosm
+import pandas as pd
 from area import area
 import geopandas as gpd
 from shapely import Polygon
@@ -17,8 +18,10 @@ class PbfHandler:
         self.osm = pyrosm.OSM(pbf, bounding_box=polygon)  #创建osm对象
         self.map = folium.Map(location=self.getpos(), zoom_start=10)  # 创建map对象
 
+        self.poi_type_num = dict()
         self.poi_type_list = list()
         self.cal_poi_types()
+        self.street_type_list = ['primary', 'secondary', 'residential', 'tertiary', 'service', 'motorway_link', 'motorway', 'trunk_link', 'unclassified', 'primary_link', 'trunk', 'pedestrian', 'tertiary_link', 'secondary_link', 'living_street', 'footway', 'disused', 'cycleway', 'track', 'path', 'busway', 'construction', 'crossing', 'steps']
     '''
     'amenity', 'building',
     'drinking_water', 'fast_food', 'internet_access', 'landuse', 'office',
@@ -31,12 +34,43 @@ class PbfHandler:
     def cal_poi_types(self):
         pois = self.get_pois()
         for index, row in pois.iterrows():
-            if row['amenity'] not in self.poi_type_list and row['amenity'] != None:
+            if row['amenity'] not in self.poi_type_list and row['amenity'] != None and row['amenity'] != 'yes' and row['amenity'] != 'nan':
                 self.poi_type_list.append(row['amenity'])
-            if row['shop'] not in self.poi_type_list and row['shop'] != None:
+            if row['shop'] not in self.poi_type_list and row['shop'] != None and row['shop'] != 'yes' and row['shop'] != 'nan':
                 self.poi_type_list.append(row['shop'])
-            if row['tourism'] not in self.poi_type_list and row['tourism'] != None:
+            if row['tourism'] not in self.poi_type_list and row['tourism'] != None and row['tourism'] != 'yes' and row['tourism'] != 'nan':
                 self.poi_type_list.append(row['tourism'])
+
+            if row['amenity'] != None and row['amenity'] != 'yes' and row['amenity'] != 'nan':
+                if self.poi_type_num.get(row['amenity']) is None:
+                    self.poi_type_num[row['amenity']] = 0
+                self.poi_type_num[row['amenity']] += 1
+            if row['shop'] != None and row['shop'] != 'yes' and row['shop'] != 'nan':
+                if self.poi_type_num.get(row['shop']) is None:
+                    self.poi_type_num[row['shop']] = 0
+                self.poi_type_num[row['shop']] += 1
+            if row['tourism'] != None and row['tourism'] != 'yes' and row['tourism'] != 'nan':
+                if self.poi_type_num.get(row['tourism']) is None:
+                    self.poi_type_num[row['tourism']] = 0
+                self.poi_type_num[row['tourism']] += 1
+
+    def get_poi_type_num(self, poi_type):
+        return self.poi_type_num[poi_type]
+
+    def get_num_of_bad_data(self):
+        count = 0
+        pois = self.get_pois()
+        for index, row in pois.iterrows():
+            badNum = 0
+            if row['amenity'] == None or row['amenity'] == 'nan' or row['amenity'] == 'yes':
+                badNum+=1
+            if row['shop'] == None or row['shop'] == 'nan' or row['shop'] == 'yes':
+                badNum+=1
+            if row['tourism'] == None or row['tourism'] == 'nan' or row['tourism'] == 'yes':
+                badNum+=1
+            if badNum == 3:
+                count+=1
+        return count
 
     def get_poi_num(self):
         pois = self.get_pois()
@@ -93,8 +127,11 @@ class PbfHandler:
     def get_pois(self):
         return self.osm.get_pois()
 
-    def get_streets(self):
-        return self.osm.get_network(network_type="driving")
+    def get_streets(self, type=None):
+        streets = self.osm.get_network(network_type="driving")
+        if type == None:
+            return streets
+        return streets[streets['highway'] == type]
 
     def get_poi_type_list(self):
         return self.poi_type_list
