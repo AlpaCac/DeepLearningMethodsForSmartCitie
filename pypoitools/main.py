@@ -32,14 +32,17 @@ pbfhandler = PbfHandler(pbf_dir, output_dir, polygon=None)
 #    print(type, pbfhandler.get_poi_type_num(type))
 
 streets = pbfhandler.get_streets()
-street_type_list = list()
+streets.plot()
+# street_type_list = list()
 # print(streets.columns)
-# print(streets.head(5))
-for index,row in streets.iterrows():
-    if row['highway'] not in street_type_list:
-        street_type_list.append(row['highway'])
-print(street_type_list)
-print(pbfhandler.get_streets(type='primary'))
+# print(streets.head(10))
+# print(streets['name'])
+# print(len(streets))
+# for index,row in streets.iterrows():
+#     if row['highway'] not in street_type_list:
+#         street_type_list.append(row['highway'])
+# print(street_type_list)
+# print(pbfhandler.get_streets(type='primary'))
 
 # print(pbfhandler.get_street_length())
 # print(pbfhandler.get_street_density())
@@ -53,11 +56,18 @@ print(pbfhandler.get_streets(type='primary'))
 #     if row['amenity'] == 'nan' or row['shop'] == 'nan' or row['tourism'] == 'nan':
 #         print(row)
 
-# boundaries = pbfhandler.osm.get_boundaries()
-# boundaries.plot(facecolor="none", edgecolor="blue")
+pois = pbfhandler.osm.get_pois()
+# print(pois.head(3))
+# print(pois.columns)
+pois.plot(markersize=3)
+# ax = pois.plot(column='poi_type', markersize=3, figsize=(12,12), legend=True, legend_kwds=dict(loc='upper left', ncol=5, bbox_to_anchor=(1, 1)))
 
+boundaries = pbfhandler.osm.get_boundaries()
+# print(boundaries)
+boundaries.plot(facecolor="none", edgecolor="blue")
+
+print(pbfhandler.street_type_num)
 # print(pbfhandler.get_street_density())
-# pbfhandler.add_pois_to_map()
 # pbfhandler.add_streets_to_map()
 # pbfhandler.save_map()
 plt.show()

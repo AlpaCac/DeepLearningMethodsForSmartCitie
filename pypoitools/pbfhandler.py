@@ -21,7 +21,11 @@ class PbfHandler:
         self.poi_type_num = dict()
         self.poi_type_list = list()
         self.cal_poi_types()
-        self.street_type_list = ['primary', 'secondary', 'residential', 'tertiary', 'service', 'motorway_link', 'motorway', 'trunk_link', 'unclassified', 'primary_link', 'trunk', 'pedestrian', 'tertiary_link', 'secondary_link', 'living_street', 'footway', 'disused', 'cycleway', 'track', 'path', 'busway', 'construction', 'crossing', 'steps']
+        self.street_type_num = dict()
+        self.street_type_list = list()
+        self.cal_street_types()
+        # self.street_type_list = ['primary', 'secondary', 'residential', 'tertiary', 'service', 'motorway_link', 'motorway', 'trunk_link', 'unclassified', 'primary_link', 'trunk', 'pedestrian', 'tertiary_link', 'secondary_link', 'living_street', 'footway', 'disused', 'cycleway', 'track', 'path', 'busway', 'construction', 'crossing', 'steps']
+
     '''
     'amenity', 'building',
     'drinking_water', 'fast_food', 'internet_access', 'landuse', 'office',
@@ -53,6 +57,17 @@ class PbfHandler:
                 if self.poi_type_num.get(row['tourism']) is None:
                     self.poi_type_num[row['tourism']] = 0
                 self.poi_type_num[row['tourism']] += 1
+
+    def cal_street_types(self):
+        streets = self.get_streets()
+        for index, row in streets.iterrows():
+            if row['highway'] == None or row['highway'] == 'nan':
+                continue
+            if row['highway'] not in self.street_type_list:
+                self.street_type_list.append(row['highway'])
+            if self.street_type_num.get(row['highway']) is None:
+                self.street_type_num[row['highway']] = 0
+            self.street_type_num[row['highway']] += row['length']
 
     def get_poi_type_num(self, poi_type):
         return self.poi_type_num[poi_type]
@@ -135,3 +150,18 @@ class PbfHandler:
 
     def get_poi_type_list(self):
         return self.poi_type_list
+
+# poi数量 poi种类数 poi坏数据数 每类poi数量
+# 路网长度 路网密度 路网类型数 每类路网长度
+    def get_data(self):
+        poi_num = self.get_poi_num()
+        poi_types = len(self.poi_type_list)
+        poi_bad_data_num = self.get_num_of_bad_data()
+        poi_num_list = self.poi_type_num
+
+        street_length = self.get_street_length()
+        street_density = self.get_street_density()
+        street_types = len(self.street_type_list)
+        street_length_list = self.street_type_num
+
+        return poi_num, poi_types, poi_bad_data_num, poi_num_list, street_length, street_density, street_types, street_length_list
